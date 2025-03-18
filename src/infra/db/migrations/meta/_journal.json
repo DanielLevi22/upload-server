@@ -8,6 +8,13 @@
       "when": 1742232058148,
       "tag": "0000_small_hellcat",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1742253581042,
+      "tag": "0001_slim_pandemic",
+      "breakpoints": true
     }
   ]
 }

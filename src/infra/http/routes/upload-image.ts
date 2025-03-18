@@ -1,3 +1,8 @@
+import { InvalidFileFormat } from '@/app/functions/erros/invlid-file-format'
+import { uploadImage } from '@/app/functions/upload-image'
+import { db } from '@/infra/db'
+import { schema } from '@/infra/db/schemas'
+import { isRight, unwrapEither } from '@/shared/either'
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
 
@@ -6,14 +11,12 @@ export const uploadImageRoute: FastifyPluginAsyncZod = async server => {
     '/upload-image',
     {
       schema: {
-        body: z.object({
-          name: z.string(),
-          password: z.string(),
-        }),
+        tags: ['Upload Image'],
+        summary: 'Upload an image',
+        consumes: ['multipart/form-data'],
+
         response: {
-          201: z.object({
-            uploadId: z.string().url(),
-          }),
+          201: z.null().describe('Image uploaded successfully'),
           409: z
             .object({
               message: z.string(),
@@ -23,7 +26,36 @@ export const uploadImageRoute: FastifyPluginAsyncZod = async server => {
       },
     },
     async (request, reply) => {
-      return reply.status(201).send({ uploadId: '1q21323' })
+      const uploadFile = await request.file({
+        limits: {
+          fileSize: 1024 * 1024 * 2, // 2mb
+        },
+      })
+
+      if (!uploadFile) {
+        return reply.status(400).send({
+          message: 'No file uploaded',
+        })
+      }
+
+      const result = await uploadImage({
+        fileName: uploadFile.filename,
+        contentType: uploadFile.mimetype,
+        contentStream: uploadFile.file,
+      })
+
+      if (isRight(result)) {
+        return reply.status(201).send()
+      }
+
+      const erro = unwrapEither(result)
+
+      switch (erro.constructor) {
+        case InvalidFileFormat:
+          return reply.status(400).send({
+            message: erro.message,
+          })
+      }
     }
   )
 }
