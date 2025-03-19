@@ -14,16 +14,15 @@ O foco principal do projeto é eficiência e escalabilidade, processando grandes
 
 - Node.js - Ambiente de execução
 - Streams API - Para processamento eficiente de arquivos
-- Multer - Middleware para manipulação de upload de arquivos
 - CSV Stringify - Para geração de relatórios em CSV
-- Express.js - Framework para criação da API
+- Fastify - Framework para criação da API
 
 ## 📦 Instalação e Configuração
 
 ### 📥 1. Clone o repositório
 
 ```bash
-git clone https://github.com/seu-usuario/upload-service.git
+git clone https://github.com/DanielLevi22/upload-server
 cd upload-service
 ```
 
