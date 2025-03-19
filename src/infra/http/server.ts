@@ -10,6 +10,8 @@ import {
   serializerCompiler,
   validatorCompiler,
 } from 'fastify-type-provider-zod'
+import { exportUploadsRoute } from './routes/export-uploads'
+import { getUploadsRoute } from './routes/get-uploads'
 import { uploadImageRoute } from './routes/upload-image'
 
 export const server = fastify()
@@ -33,7 +35,10 @@ server.register(fastifySwagger, {
 server.register(fastifySwaggerUi, {
   routePrefix: '/docs',
 })
+
 server.register(uploadImageRoute)
+server.register(getUploadsRoute)
+server.register(exportUploadsRoute)
 
 server.setErrorHandler((error, request, reply) => {
   if (hasZodFastifySchemaValidationErrors(error)) {
