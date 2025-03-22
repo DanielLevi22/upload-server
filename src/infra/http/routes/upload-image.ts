@@ -8,13 +8,12 @@ import { z } from 'zod'
 
 export const uploadImageRoute: FastifyPluginAsyncZod = async server => {
   server.post(
-    '/upload',
+    '/uploads',
     {
       schema: {
         tags: ['uploads'],
         summary: 'Upload an image',
         consumes: ['multipart/form-data'],
-
         response: {
           201: z.null().describe('Image uploaded successfully'),
           409: z
@@ -28,7 +27,7 @@ export const uploadImageRoute: FastifyPluginAsyncZod = async server => {
     async (request, reply) => {
       const uploadFile = await request.file({
         limits: {
-          fileSize: 1024 * 1024 * 2, // 2mb
+          fileSize: 5 * 1024 * 1024, // 5MB
         },
       })
 
