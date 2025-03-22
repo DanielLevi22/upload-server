@@ -8,7 +8,7 @@ import { z } from 'zod'
 
 export const uploadImageRoute: FastifyPluginAsyncZod = async server => {
   server.post(
-    '/upload-image',
+    '/upload',
     {
       schema: {
         tags: ['uploads'],
