@@ -1,9 +1,9 @@
 name: widget-server pipe ECR
 on:
-  push:
+  pull_request:
     branches:
       - master
-
+    types: [opened, reopened, labeled, unlabeled, synchronize]
 jobs:
   build:
     name: Build
