@@ -12,6 +12,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+
+      - name: Configure Node.js
+        id: configure-nodejs
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      
+      -  name: Install pnpm
+         id: install-pnpm
+         uses: pnpm/action-setup@v4
+         with:
+            version: 10.6.4
+
+      - name: Install dependencies
+        id: install-dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Configure AWS Credentials
         id: configure-aws
         uses: aws-actions/configure-aws-credentials@v4
@@ -23,21 +40,56 @@ jobs:
       - name: Login to AWS ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        id: setup-docker-buildx
+        uses: docker/setup-buildx-action@v3
       
       - name: Generate tag
         id: generate-tags
         run: |
          SHA=$(echo $GITHUB_SHA | head -c7)
          echo "sha=$SHA" >> $GITHUB_OUTPUT
+
+
+      - name: Build and export image
+        id: build-and-export-image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha, mode=max
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:test
+
+      - name: Run Trivy vulnerability scanner
+        id: run-trivy-scanner
+        uses: aquasecurity/trivy-action@0.29.0
+        with:
+           image-ref: '${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:test'
+           format: 'table'
+           ignore-unfixed: true
+           vuln-type: 'os,library'
+           severity: 'CRITICAL,HIGH,MEDIUM,LOW'
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          cache-from: type=gha
+          context: .
+          push: true
+          tags: |
+             ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ steps.generate-tags.outputs.sha }}
         
-      - name: Build and push Docker image to AWS ECR
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
-          IMAGE_TAG: ${{ steps.generate-tags.outputs.sha }}
-        id: build-and-push-image
-        run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      # - name: Build and push Docker image to AWS ECR
+      #   env:
+      #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      #     ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+      #     IMAGE_TAG: ${{ steps.generate-tags.outputs.sha }}
+      #   id: build-and-push-image
+      #   run: |
+      #     docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+      #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       
