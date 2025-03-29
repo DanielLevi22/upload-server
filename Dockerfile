@@ -30,14 +30,6 @@ COPY --from=build /usr/src/app/node_modules ./node_modules
 COPY --from=build /usr/src/app/package.json ./package.json
 
 
-
-
-# ENV CLOUDFLARE_ACCOUNT_ID="#"
-# ENV CLOUDFLARE_ACCESS_KEY_ID="#"
-# ENV CLOUDFLARE_SECRET_ACCESS_KEY="#"
-# ENV CLOUDFLARE_BUCKET="#"
-# ENV CLOUDFLARE_PUBLIC_URL="https://pub-cb9dffa198e24959ac3860070e24c9d5.r2.dev"
-
 EXPOSE 3333
 
 CMD ["dist/infra/http/server.mjs"]
