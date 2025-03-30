@@ -55,42 +55,42 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          load: true 
-          push: false  
+          load: true
+          push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
-            ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:test
-          platforms: linux/amd64  # Fixa a plataforma
+            widget-server:test  # Tag local, sem referência ao ECR
+          platforms: linux/amd64
+
+      - name: Debug local images after build
+        run: |
+          echo "Imagens locais após build para escaneamento:"
+          docker images
 
       - name: Run Trivy vulnerability scanner
         id: run-trivy-scanner
         uses: aquasecurity/trivy-action@0.29.0
         with:
-          image-ref: '${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:test'
+          image-ref: 'widget-server:test'  # Escaneia a imagem local
           format: 'table'
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH,MEDIUM,LOW'
 
-      - name: Build and push
+      - name: Build and push to ECR
+        id: build-and-push
         if: success()
         uses: docker/build-push-action@v6
         with:
-          cache-from: type=gha
           context: .
           push: true
+          cache-from: type=gha
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ steps.generate-tags.outputs.sha }}
-          platforms: linux/amd64  # Fixa a plataforma
+          platforms: linux/amd64
 
-
-           # - name: Build and push Docker image to AWS ECR
-          #   env:
-          #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          #     ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
-          #     IMAGE_TAG: ${{ steps.generate-tags.outputs.sha }}
-          #   id: build-and-push-image
-          #   run: |
-          #     docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      - name: Debug ECR images after push
+        run: |
+          echo "Imagens no ECR após push:"
+          aws ecr describe-images --repository-name ${{ vars.ECR_REPOSITORY }} --region ${{ vars.AWS_REGION }} --query 'imageDetails[*].[imageDigest,imageTags,imagePushedAt,imageSizeInBytes]' --output table
