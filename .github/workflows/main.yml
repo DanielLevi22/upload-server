@@ -59,7 +59,7 @@ jobs:
           push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          tags: widget-server:test  # Tag local, sem referência ao ECR
+          tags: widget-server:test
           platforms: linux/amd64
 
       - name: Debug local images after build
@@ -74,7 +74,7 @@ jobs:
           image-ref: 'widget-server:test'
           format: 'table'
           ignore-unfixed: true
-          vuln-type: 'os,library'
+          vuln   vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH,MEDIUM,LOW'
 
       - name: Build and push to ECR
@@ -88,7 +88,9 @@ jobs:
           tags: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ steps.generate-tags.outputs.sha }}
           platforms: linux/amd64
 
-      - name: Debug ECR images after push
+      - name: Debug images after push
         run: |
+          echo "Imagens locais após push:"
+          docker images
           echo "Imagens no ECR após push:"
-          aws ecr describe-images --repository-name ${{ vars.ECR_REPOSITORY }} --region ${{ vars.AWS_REGION }} --query 'imageDetails[*].[imageDigest,imageTags,imagePushedAt,imageSizeInBytes]' --output table
+          aws ecr describe-images --repository-name ${{ vars.ECR_REPOSITORY }} --region ${{ vars.AWS_REGION }} --output json
