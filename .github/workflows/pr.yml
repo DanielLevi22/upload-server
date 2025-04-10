@@ -43,6 +43,7 @@ jobs:
         with:
           command: preview
           stack-name: DanielLevi22/stg
+          work-dir: infra
         env:
-          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }} 
 
