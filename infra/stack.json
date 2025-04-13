@@ -1,0 +1,17 @@
+{
+    "version": 3,
+    "deployment": {
+        "manifest": {
+            "time": "2025-04-13T08:49:00.931143075-03:00",
+            "magic": "4eae86ecf9bebc8e257c5684d437d5afbdcda970166ea624c603237617383797",
+            "version": "v3.160.0"
+        },
+        "secrets_providers": {
+            "type": "passphrase",
+            "state": {
+                "salt": "v1:CFBpevyi5D4=:v1:AhWXa7yVA1ZY+ANd:ljLmCffE+rsYRF6dDXEJcPkfUlGDbA=="
+            }
+        },
+        "metadata": {}
+    }
+}
