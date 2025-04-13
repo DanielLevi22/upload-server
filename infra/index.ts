@@ -5,7 +5,7 @@ import * as pulumi from '@pulumi/pulumi'
 // Create an AWS resource (S3 Bucket)
 
 const bucket = new aws.s3.BucketV2('upload-server', {
-  bucket: 'upload-server',
+  bucket: `upload-server-${pulumi.getStack()}-${pulumi.getProject()}`,
   tags: {
     IAC: 'true',
   },
