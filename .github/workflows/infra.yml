@@ -44,7 +44,7 @@ jobs:
           command: up
           stack-name: stg
           work-dir: infra
-          cloud-url: s3://upload-server-stg
+          cloud-url: s3://upload-server-stg-upload-server 
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
