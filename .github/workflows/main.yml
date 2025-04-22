@@ -92,19 +92,38 @@ jobs:
       #     docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
       #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      - name: Deploy to App Runner
-        id: deploy-to-app-runner
-        uses: awslabs/amazon-app-runner-deploy@main  
-        with:
-          service: ${{ vars.APP_RUNNER_SERVICE_NAME }}
-          image: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ steps.generate-tags.outputs.sha }}
-          region: ${{ vars.AWS_REGION }}
-          access-role-arn: ${{ secrets.ROLE_ARN}}
-          cpu: ${{ vars.CPU }}
-          memory: ${{ vars.MEMORY }}
-          port: 3333
-          wait-for-service-stability-seconds: 180
+      # - name: Deploy to App Runner
+      #   id: deploy-to-app-runner
+      #   uses: awslabs/amazon-app-runner-deploy@main  
+      #   with:
+      #     service: ${{ vars.APP_RUNNER_SERVICE_NAME }}
+      #     image: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ steps.generate-tags.outputs.sha }}
+      #     region: ${{ vars.AWS_REGION }}
+      #     access-role-arn: ${{ secrets.ROLE_ARN}}
+      #     cpu: ${{ vars.CPU }}
+      #     memory: ${{ vars.MEMORY }}
+      #     port: 3333
+      #     wait-for-service-stability-seconds: 180
 
-      - name: App Runner Check
-        id: app-runner-check
-        run: echo "App Runner running ... ${{ steps.deploy-to-app-runner.outputs.app-runner-url }}"
+      # - name: App Runner Check
+      #   id: app-runner-check
+      #   run: echo "App Runner running ... ${{ steps.deploy-to-app-runner.outputs.app-runner-url }}"
+      - name: Render Amazon ECS task definition
+        id: render-task-definition
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          container-name:  ${{ vars.CONTAINER_NAME }}
+          task-definition: .aws/task-definition.json
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ steps.generate-tags.outputs.sha }}
+        
+
+      - name: Deploy to Amazon ECS service
+        id: deploy-to-ecs
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render-task-definition.outputs.task-definition }}
+          service: ${{ vars.SERVICE_NAME }}
+          cluster: upload-widget-server-ecs 
+          wait-for-service-stability: true
+
+
